@@ -7,7 +7,7 @@ node{
       // Get maven home path
     def mvn_home = 'maven'
     withEnv( ["PATH+MAVEN=${tool mvn_home}/bin"] ) {
-     sh "mvn clean package"
+     sh "mvn clean install"
     }
    stage('Deploy to Tomcat'){
       sshagent(['jenkins_cat']){
