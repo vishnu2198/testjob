@@ -1,34 +1,30 @@
-pipeline{
-	agent any
-	tools {
-		jdk '1.8.0_252'
-	}
-	options {
-		timestamps()
-		
-	}
-	stages {
-		stage('Display the path of jenkins'){
-			steps {
-				echo "this is building an job"
-				echo "PATH = ${PATH}"
-			}
-		}
-		stage('check the source code'){
-			steps{
-				checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/bhavanimahalingam/testjob.git']]])
-			}
-		}
-		stage('run the python code'){
-			steps {
-				sh 'python helloworld.py'
-			}
-		}
-		stage('email notifictaion'){
-			steps {
-				mail bcc: '', body: 'some error has occured', cc: '', from: '', replyTo: '', subject: 'bavani Pipeline', to: 'bavani15799@gmail.com'
+node {
+   	
+   
+   
+
+   
+ 
+   
 	
-			}
-		}
-	}
+   stage('Mvn Package'){
+	   // Build using maven
+	   def mvn = tool name: 'maven', type: 'maven'
+	   sh "${mvn}/bin/mvn package"
+   }
+   
+   stage('deploy-dev'){
+       def tomcatDevIp = '35.153.16.158'
+	   def tomcatHome = '/opt/tomcat8/'
+	   def webApps = tomcatHome+'webapps/'
+	   def tomcatStart = "${tomcatHome}bin/startup.sh"
+	   def tomcatStop = "${tomcatHome}bin/shutdown.sh"
+	   
+	   sshagent (credentials: ['tomcat-dev']) {
+	      sh "scp -o StrictHostKeyChecking=no target/myweb*.war ec2-user@${tomcatDevIp}:${webApps}myweb.war"
+          sh "ssh ec2-user@${tomcatDevIp} ${tomcatStop}"
+		  sh "ssh ec2-user@${tomcatDevIp} ${tomcatStart}"
+       }
+   }
+   
 }
